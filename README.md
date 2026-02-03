@@ -1,24 +1,18 @@
-# ログ自動レポート（Log Auto Report）
+# 売上CSV → 自動レポート（SALES CSV → Auto Report）
 
 ## 概要
-アプリケーションログ（.log / .txt）を自動解析し、  
-**ログ件数の集計・可視化・CSV出力** を行う Python ツールです。
+売上CSV（`date, product, price, quantity`）を読み込み、
+**日別売上 / 商品別売上 / 売上TOP N** を集計し、CSVとグラフ（PNG）を自動生成する Python ツールです。
 
-手作業でのログ確認や一次分析を自動化することを目的としています。
+- input/ にCSVを置いて実行するだけ
+- output/report_YYYYMMDD_HHMMSS/ に結果を出力
 
 ## Before / After
 
-- **Before**：ログファイルを目視・grepで確認し、件数や傾向を手作業で把握  
-- **After**：ログを input/ に置いて実行するだけで、日別件数・レベル別集計・グラフを自動生成
+- **Before**：Excelで集計・グラフ作成を手作業で実施
+- **After**：CSVを input/ に置いて実行するだけで、集計CSV・グラフを自動生成
 
 ---
-
-## 想定利用シーン
-
-- サーバー / アプリケーションログの一次分析
-- INFO / WARN / ERROR の発生傾向を把握したい
-- 日別のログ件数を可視化したい
-- 障害調査や運用レポート作成の前段階
 
 ログファイルを `input/` に入れて実行するだけで、  
 **集計・CSV出力・グラフ生成** までを自動で行います。
@@ -28,35 +22,21 @@
 ## フォルダ構成
 
 ```text
-sales_auto_report/
+sales_csv_auto_report/
 ├─ input/      # 売上CSVファイル（date, product, price, quantity）
 ├─ output/     # 集計結果（CSV / PNG）
 ├─ main.py     # メインスクリプト
 ├─ .gitignore
 └─ README.md
 ```
-
----
-
-## 対応ログ形式（例）
-
-```
-2026-02-02 12:34:56 INFO Application started
-[2026-02-02 12:35:10] [ERROR] Database connection failed
-2026-02-02T12:36:01Z WARN Slow response detected
-```
-
----
-
 ## 機能
 
-- ログファイルの自動解析
-- 日別ログ件数の集計
-- ログレベル別（INFO / WARN / ERROR）件数集計
-- 集計結果を CSV 形式で出力
-- 集計結果をグラフ（PNG）として可視化
-
-※ 不正な行（price/quantityが数値でない、dateが解析できない等）は自動で除外して集計します。
+- 売上CSVの自動読み込み（複数CSV対応）
+- 日別売上の集計
+- 商品別売上の集計
+- 売上TOP N商品の抽出
+- 税抜 / 税込（tax-rate指定）売上の切り替え
+- 集計結果を CSV / グラフ（PNG）で出力
 
 ---
 
@@ -98,10 +78,10 @@ output/
 
 ## 使い方
 
-### 1. ログファイルを配置
+### 1. 売上CSVを配置
 
-```
-input/app.log
+```text
+input/sales_sample.csv
 ```
 
 ### 2. 実行
@@ -114,46 +94,33 @@ python3 main.py --top 10
 
 このスクリプトは、実行時に引数を指定することで挙動を変更できます。
 
-- `--input-dir`  
-  入力CSVのフォルダパス（デフォルト：`input`）
-
-- `--output-dir`  
-  出力先フォルダパス（デフォルト：`output`）
-
-- `--top`  
-  売上上位N商品の表示件数（デフォルト：`5`）
-
---tax-rate：消費税率（デフォルト：0.0 = 税抜 / 例：0.08 = 税込8%）
-
+- `--input-dir`：入力CSVのフォルダ（デフォルト：`input`）
+- `--output-dir`：出力先フォルダ（デフォルト：`output`）
+- `--top`：売上上位の表示件数（デフォルト：`5`）
+- `--tax-rate`：消費税率（デフォルト：`0.0` = 税抜 / 例：`0.08` = 税込8%）
 💡 税率を指定することで、税抜・税込どちらの売上集計にも対応できます。
 　　実務の請求書チェックや売上レポート作成にそのまま使えます。
 
 ### 使用例
 
 ```bash
-# デフォルト設定で実行
-python3 main.py
-
-# Top10商品を出力
-python3 main.py --top 10
-
-# 入力・出力フォルダを指定
-python3 main.py --input-dir data --output-dir result
-
-## 引数（オプション）
-
-このツールは、入力フォルダ・出力フォルダ・Top件数を引数で変更できます。
-
 # 税抜（デフォルト）
 python3 main.py
 
 # 税込 8%
 python3 main.py --tax-rate 0.08
 
+# Top10商品を出力
+python3 main.py --top 10
+
+# 入力・出力フォルダを指定
+python3 main.py --input-dir data --output-dir result --tax-rate 0.08
+```
+
 ### 例（全部指定）
 ```bash
 python3 main.py --input-dir input --output-dir output --top 5
-
+```
 ---
 
 	•	概要
