@@ -1,4 +1,4 @@
-# 売上CSV → 自動レポート（SALES CSV → Auto Report）
+# 売上CSV → 自動レポート（Sales CSV → Auto Report）
 
 ## 概要
 売上CSV（`date, product, price, quantity`）を読み込み、
@@ -11,11 +11,6 @@
 
 - **Before**：Excelで集計・グラフ作成を手作業で実施
 - **After**：CSVを input/ に置いて実行するだけで、集計CSV・グラフを自動生成
-
----
-
-ログファイルを `input/` に入れて実行するだけで、  
-**集計・CSV出力・グラフ生成** までを自動で行います。
 
 ---
 
@@ -98,8 +93,8 @@ python3 main.py --top 10
 - `--output-dir`：出力先フォルダ（デフォルト：`output`）
 - `--top`：売上上位の表示件数（デフォルト：`5`）
 - `--tax-rate`：消費税率（デフォルト：`0.0` = 税抜 / 例：`0.08` = 税込8%）
-💡 税率を指定することで、税抜・税込どちらの売上集計にも対応できます。
-　　実務の請求書チェックや売上レポート作成にそのまま使えます。
+-  💡 税率を指定することで、税抜・税込どちらの売上集計にも対応できます。
+-　実務の請求書チェックや売上レポート作成にそのまま使えます。
 
 ### 使用例
 
@@ -119,12 +114,5 @@ python3 main.py --input-dir data --output-dir result --tax-rate 0.08
 
 ### 例（全部指定）
 ```bash
-python3 main.py --input-dir input --output-dir output --top 5
+python3 main.py --input-dir input --output-dir output --top 5 --tax-rate 0.08
 ```
----
-
-	•	概要
-	•	フォルダ構成
-	•	使い方（input → 実行）
-	•	Before / After
-	•	出力されるファイル・グラフ
