@@ -10,7 +10,8 @@
 ## Before / After
 
 - **Before**：Excelで集計・グラフ作成を手作業で実施
-- **After**：CSVを input/ に置いて実行するだけで、集計CSV・グラフを自動生成
+- **After**：CSVを input/ に置いて実行するだけで、  
+  売上集計・税抜/税込切替・CSV/グラフ生成まで自動化
 
 ---
 
@@ -63,12 +64,11 @@ output/
 
 ## グラフ出力
 
-### 日別売上
-![Daily Sales](output/report_20260202_184001/daily_sales.png)
+- 日別売上グラフ（PNG）
+- 売上TOP N 商品グラフ（PNG）
 
-### 売上TOP5
-![Top5 Products](output/report_20260202_184001/top5_products.png)
-
+※ グラフは output/report_YYYYMMDD_HHMMSS/ 配下に自動生成されます  
+※ 出力例は毎回変わるため、README には固定表示していません
 ---
 
 ## 使い方
@@ -93,8 +93,8 @@ python3 main.py --top 10
 - `--output-dir`：出力先フォルダ（デフォルト：`output`）
 - `--top`：売上上位の表示件数（デフォルト：`5`）
 - `--tax-rate`：消費税率  
-  - デフォルト：`0.0`（税抜）
-  - 例：`0.08`（税込8%）
+  - `0.0`（デフォルト：税抜）
+  - `0.08`（税込：8%）
   - 💡 税率を指定することで、税抜・税込どちらの売上集計にも対応  
     実務の請求書チェックや売上レポート作成にそのまま利用可能
 
