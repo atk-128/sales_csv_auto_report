@@ -36,6 +36,15 @@ sales_csv_auto_report/
 
 ---
 
+## 派生版（sales_csv_auto_report）の差分ポイント
+
+このリポジトリは、元の「自動レポート」ツールを **売上CSV向けに特化**して派生開発した版です。
+
+- ✅ 入力が「売上CSV（date, product, price, quantity）」前提で、集計ロジックを最適化
+- ✅ 複数CSVをまとめて結合 → 売上を一括集計できる
+- ✅ `--tax-rate` で **税抜 / 税込を切り替え**（請求書チェックや社内レポートに直結）
+- ✅ 実行ごとに `output/report_YYYYMMDD_HHMMSS/` に結果を分離して保存（履歴が残る）
+
 ## 出力内容
 
 ## 出力例（実行後）
