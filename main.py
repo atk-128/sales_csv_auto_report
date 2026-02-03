@@ -35,6 +35,12 @@ def parse_args():
         default=5,
         help="売上上位の表示件数（デフォルト：5）",
     )
+    parser.add_argument(
+        "--tax-rate",
+        type=float,
+        default=0.0,
+        help="消費税(デフォルト：0.0=税抜)"
+    )
     return parser.parse_args()
 
 
@@ -50,32 +56,18 @@ def find_csv_files(input_dir):
     return files
 
 
-def load_and_concat_csv(files):
+def load_and_concat_csv(files, tax_rate: float):
     dfs = []
 
     for f in files:
         df = pd.read_csv(f)
 
-        # ✅ 必須列チェック（親切版）
-        required_cols = ["date", "product", "price", "quantity"]
-        missing = [c for c in required_cols if c not in df.columns]
-
+        # 必須列チェックなど（ここはあなたのままでOK）
+        required_cols = {"date", "product", "price", "quantity"}
+        missing = required_cols - set(df.columns)
         if missing:
-            example = "date,product,price,quantity\n2026-02-01,Apple,120,3"
-            raise ValueError(
-                "\n".join([
-                    "CSVの列が不足しています。",
-                    f"ファイル: {os.path.basename(f)}",
-                    f"不足列: {missing}",
-                    f"必要列: {required_cols}",
-                    f"現在の列: {list(df.columns)}",
-                    "",
-                    "✅ CSVヘッダー例:",
-                    example,
-                ])
-            )
+            raise ValueError(f"{os.path.basename(f)} に必須列がありません: {missing}")
 
-        # ✅ 数値変換（壊れてる行は落とす）
         df["price"] = pd.to_numeric(df["price"], errors="coerce")
         df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce")
         df = df[df["price"].notna() & df["quantity"].notna()]
@@ -83,32 +75,34 @@ def load_and_concat_csv(files):
         df["source_file"] = os.path.basename(f)
         dfs.append(df)
 
-    # 🔽 ここからは「全CSV結合後」の処理（forの外）
+    # ✅ forループの外（ここ重要）
     df_all = pd.concat(dfs, ignore_index=True)
 
-    # date を datetime に
     df_all["date"] = pd.to_datetime(df_all["date"], errors="coerce")
     df_all = df_all[df_all["date"].notna()]
 
-    # 売上列
     df_all["sales"] = (df_all["price"] * df_all["quantity"]).round(2)
 
-    # 日付だけに整形
+    # ✅ ここで税込売上（df_allが存在してから！）
+    df_all["sales_with_tax"] = (df_all["sales"] * (1 + tax_rate)).round(2)
+
     df_all["date"] = df_all["date"].dt.date
 
     return df_all
 
-def summarize(df_all, top_n: int = 5):
+def summarize(df_all, top_n: int = 5, sales_col: str = "sales"):
     daily = (
-        df_all.groupby("date", as_index=False)["sales"]
+        df_all.groupby("date", as_index=False)[sales_col]
         .sum()
         .sort_values("date")
+        .rename(columns={sales_col: "sales"})
     )
 
     product = (
-        df_all.groupby("product", as_index=False)["sales"]
+        df_all.groupby("product", as_index=False)[sales_col]
         .sum()
-        .sort_values("sales", ascending=False)
+        .sort_values(sales_col, ascending=False)
+        .rename(columns={sales_col: "sales"})
     )
 
     topn = product.head(top_n)
@@ -148,14 +142,18 @@ def main():
     args = parse_args()
 
     ensure_dirs(args.input_dir, args.output_dir)
-
     run_dir = make_run_dir(args.output_dir)
 
     files = find_csv_files(args.input_dir)
-    df_all = load_and_concat_csv(files)
+    df_all = load_and_concat_csv(files, args.tax_rate)
+    
+    sales_col = "sales_with_tax" if args.tax_rate != 0 else "sales"
 
-    daily, product, top5 = summarize(df_all)
-
+    daily, product, top5 = summarize(
+        df_all,
+        top_n=args.top,
+        sales_col=sales_col
+    )
     export_csv(df_all, daily, product, top5, run_dir)
     export_graphs(daily, top5, run_dir)
 
